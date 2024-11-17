@@ -7,7 +7,7 @@ public class Projectile : MonoBehaviour
 {
     Rigidbody2D rigidbody2d;
 
-    // Start is called before the first frame update
+    // Awake is called when the Projectile GameObject is instantiated
     void Awake()
     {
         rigidbody2d = GetComponent<Rigidbody2D>();
@@ -25,15 +25,19 @@ public class Projectile : MonoBehaviour
     {
         rigidbody2d.AddForce(direction * force);
     }
+
     void OnCollisionEnter2D(Collision2D other)
     {
+
         EnemyController enemy = other.collider.GetComponent<EnemyController>();
+
         if (enemy != null)
         {
-           //  enemy.Fix(); <-- part that keeps breaking
+            enemy.Fix();
         }
-
+       
         Destroy(gameObject);
+
     }
 
 }

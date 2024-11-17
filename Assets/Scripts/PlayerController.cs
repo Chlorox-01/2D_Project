@@ -2,9 +2,21 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
+using UnityEngine.SceneManagement;
 
 public class PlayerController : MonoBehaviour
 {
+    //Score 
+    public int score;
+
+    // game over
+    public GameObject gameOverText;
+    bool gameOver;
+
+    // Variables related to audio
+    AudioSource audioSource;
+
     // Variables related to player character movement
     public InputAction MoveAction;
     Rigidbody2D rigidbody2d;
@@ -16,6 +28,8 @@ public class PlayerController : MonoBehaviour
     public int maxHealth = 5;
     int currentHealth;
     public int health { get { return currentHealth; } }
+    public GameObject healthEffectPrefab;
+    public GameObject hitEffectPrefab;
 
 
     // Variables related to temporary invincibility
@@ -27,6 +41,7 @@ public class PlayerController : MonoBehaviour
     // Variables related to animation
     Animator animator;
     Vector2 moveDirection = new Vector2(1, 0);
+    public InputAction talkAction;
 
 
     // Variables related to projectiles
@@ -36,11 +51,21 @@ public class PlayerController : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {
+        audioSource = GetComponent<AudioSource>();
+
+        talkAction.Enable();
+        talkAction.performed += FindFriend;
+
+        launchAction.Enable();
+        //launchAction.performed += Launch; <---causes compiler error CS0123
+
         MoveAction.Enable();
         rigidbody2d = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
 
         currentHealth = maxHealth;
+
+        gameOver = false;
     }
 
     // Update is called once per frame
@@ -65,15 +90,54 @@ public class PlayerController : MonoBehaviour
         {
             damageCooldown -= Time.deltaTime;
             if (damageCooldown < 0)
+            {
                 isInvincible = false;
+            }
         }
 
-
+        // Detect input for projectile launch
         if (Input.GetKeyDown(KeyCode.C))
         {
             Launch();
         }
 
+        // Detect input for NPC interaction
+        if (Input.GetKeyDown(KeyCode.X))
+        {
+            RaycastHit2D hit = Physics2D.Raycast(rigidbody2d.position + Vector2.up * 0.2f, moveDirection, 1.5f, LayerMask.GetMask("NPC"));
+            if (hit.collider != null)
+            {
+                NonPlayerCharacter character = hit.collider.GetComponent<NonPlayerCharacter>();
+            }
+        }
+
+        // ifs to display game over screen
+        if (currentHealth <= 0)
+        {
+            gameOverText.SetActive(true);
+            gameOver = true;
+            speed = 0;
+        }
+
+        if (score >= 2)
+        {
+            gameOverText.SetActive(true);
+            gameOver = true;
+            speed = 0;
+        }
+
+        if (Input.GetKey(KeyCode.R)) // check to see if the player is pressing R
+
+        {
+
+            if (gameOver == true) // check to see if the game over boolean has been set to true
+
+            {
+
+                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // this loads the currently active scene, which results in a restart of whatever scene the player is currently in
+
+            }
+        }
     }
 
 
@@ -95,6 +159,14 @@ public class PlayerController : MonoBehaviour
             isInvincible = true;
             damageCooldown = timeInvincible;
             animator.SetTrigger("Hit");
+
+            GameObject hitEffectObject = Instantiate(hitEffectPrefab, rigidbody2d.position + Vector2.up * 0.5f, Quaternion.identity);
+        }
+
+        if (amount>0)
+        {
+            GameObject healthEffectObject = Instantiate(healthEffectPrefab, rigidbody2d.position + Vector2.up * 0.5f, Quaternion.identity);
+
         }
 
 
@@ -111,5 +183,30 @@ public class PlayerController : MonoBehaviour
 
         animator.SetTrigger("Launch");
     }
+    void FindFriend(InputAction.CallbackContext context)
+    {
+        RaycastHit2D hit = Physics2D.Raycast(rigidbody2d.position + Vector2.up * 0.2f, moveDirection, 1.5f, LayerMask.GetMask("NPC"));
+
+        if (hit.collider != null)
+        {
+            NonPlayerCharacter character = hit.collider.GetComponent<NonPlayerCharacter>();
+            if (hit.collider != null)
+            {
+                UIHandler.instance.DisplayDialogue();
+            }
+        }
+    }
+
+    public void PlaySound(AudioClip clip)
+    {
+        audioSource.PlayOneShot(clip);
+    }
+
+    public void ChangeScore(int scoreAmount)
+    {
+        score += scoreAmount; //increase score amount
+    }
+
 
 }
+
