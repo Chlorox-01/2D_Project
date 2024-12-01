@@ -14,7 +14,8 @@ public class DamageZone : MonoBehaviour
         if (controller != null)
         {
             controller.ChangeHealth(-1);
- 
+            controller.speed = 3; // change player speed back to normal when hit ------------ gameplay mod
+
         }
     }
 

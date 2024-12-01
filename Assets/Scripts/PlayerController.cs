@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.InputSystem.XR;
 using UnityEngine.SceneManagement;
+using UnityEngine.TextCore.Text;
 
 public class PlayerController : MonoBehaviour
 {
@@ -13,6 +14,12 @@ public class PlayerController : MonoBehaviour
     // game over
     public GameObject gameOverText;
     bool gameOver;
+
+    // win or lose sounds ------------ audio mod
+    public AudioClip win;
+    bool winEnd;
+    public AudioClip lose;
+    bool loseEnd;
 
     // Variables related to audio
     AudioSource audioSource;
@@ -57,7 +64,7 @@ public class PlayerController : MonoBehaviour
         talkAction.performed += FindFriend;
 
         launchAction.Enable();
-        //launchAction.performed += Launch; <---causes compiler error CS0123
+        //launchAction.performed += Launch; <---causes compiler error CS0123, game functions fine without it
 
         MoveAction.Enable();
         rigidbody2d = GetComponent<Rigidbody2D>();
@@ -66,6 +73,10 @@ public class PlayerController : MonoBehaviour
         currentHealth = maxHealth;
 
         gameOver = false;
+
+        // set win and lose to false  --------------- audio mod
+        loseEnd = false;
+        winEnd = false;
     }
 
     // Update is called once per frame
@@ -117,6 +128,9 @@ public class PlayerController : MonoBehaviour
             gameOverText.SetActive(true);
             gameOver = true;
             speed = 0;
+
+            // set lose to true after health is <0 -------------- audio mod
+            loseEnd = true;
         }
 
         if (score >= 2)
@@ -124,18 +138,28 @@ public class PlayerController : MonoBehaviour
             gameOverText.SetActive(true);
             gameOver = true;
             speed = 0;
+
+            // set win to true after score is >2 --------------- audio mod
+            winEnd = true;
+        }
+
+        // if win or lose is true, then play corresponding sound --------------- audio mod
+        if (winEnd == true)
+        {
+            audioSource.PlayOneShot(win);
+        }
+        if (loseEnd == true)
+        {
+            audioSource.PlayOneShot(lose);
         }
 
         if (Input.GetKey(KeyCode.R)) // check to see if the player is pressing R
 
         {
-
             if (gameOver == true) // check to see if the game over boolean has been set to true
 
             {
-
                 SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex); // this loads the currently active scene, which results in a restart of whatever scene the player is currently in
-
             }
         }
     }
@@ -146,6 +170,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector2 position = (Vector2)rigidbody2d.position + move * speed * Time.deltaTime;
         rigidbody2d.MovePosition(position);
+
     }
 
 
@@ -200,6 +225,7 @@ public class PlayerController : MonoBehaviour
     public void PlaySound(AudioClip clip)
     {
         audioSource.PlayOneShot(clip);
+
     }
 
     public void ChangeScore(int scoreAmount)

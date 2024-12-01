@@ -106,6 +106,7 @@ public class EnemyController : MonoBehaviour
         if (player != null)
         {
             player.ChangeHealth(-1);
+            player.speed = 3; // change player speed back to normal when hit ------------ gameplay mod
 
         }
 
@@ -119,6 +120,7 @@ public class EnemyController : MonoBehaviour
         if (player != null)
         {
             player.ChangeHealth(-1);
+            player.speed = 3; // change player speed back to normal when hit ------------ gameplay mod
         }
     }
 
